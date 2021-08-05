@@ -1,0 +1,16 @@
+body {
+  margin: 2.5%;
+}
+
+.CanvasWrapper {
+  position: relative;
+  width: 100%;
+}
+
+.CanvasWrapper canvas {
+  position: absolute;
+}
+
+#ImgLayer {
+  border-style: solid;
+}
