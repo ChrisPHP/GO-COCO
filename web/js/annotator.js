@@ -3,6 +3,7 @@ var PointsOn = false;
 
 var Drag = false;
 
+var Classes = [];
 //Save Polygons
 
 window.onload = function(e) {
@@ -34,7 +35,21 @@ window.onload = function(e) {
   //Add Classes and colours
   //=======================
 
+  var CategoryText = document.getElementById("CategoryName");
   var AddClass = document.getElementById("ClassAddButton");
+  var ClassColour = document.getElementById("ClassColour");
+  var ClassList = document.getElementById("ClassList");
+
+  AddClass.addEventListener("click", function(e) {
+    if (CategoryText.value == "") {
+      alert("Class Name needed");
+      return;
+    } else {
+      Classes.push([CategoryText.value, ClassColour.value])
+      ClassList.innerHTML += '<button id="' + Classes.length + '" type="button" class="btn btn-secondary">' + CategoryText.value + '</button>';
+      console.log(Classes);
+    }
+  });
 
   //===================================
   //Editing the Canvas like clearing
@@ -156,10 +171,6 @@ window.onload = function(e) {
       TempCtx.clearRect(0, 0, TempLayer.width, TempLayer.height);
       TempCtx.strokeRect(StartX, StartY, Width, Height);
     }
-  });
-
-  CreateInfo.addEventListener("click", function(e) {
-    fetchMe();
   });
 }
 
