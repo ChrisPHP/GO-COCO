@@ -15,6 +15,7 @@
     <div class="d-flex justify-content-evenly">
       <input type="file" id="imageInput" accept="image/*">
       <button id="ClearCanvas" type="button" class="btn btn-info">Clear Canvas</button>
+      <button id="ExportData" type="button" class="btn btn-primary">Export to COCO</button> 
     </div>
 
     <br>
@@ -39,8 +40,13 @@
         </div>
       </div>
 
-      <div id="ClassList">
+      <div id="ClassDiv">
+        <select name="classes" id="ClassList">
 
+        </select>
+        <button id="RemClass" type="button" class="btn btn-danger">Remove</button>
+        <div id="ClassCol">
+        </div>
       </div>
 
     </div>

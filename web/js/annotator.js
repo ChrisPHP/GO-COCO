@@ -4,7 +4,14 @@ var PointsOn = false;
 var Drag = false;
 
 var Classes = [];
+
 //Save Polygons
+var Seg = [];
+
+//format for golang to merge
+var Poly = [];
+var Area = [];
+var BBox = [];
 
 window.onload = function(e) {
   var CreateInfo = document.getElementById('CreateInfo');
@@ -46,9 +53,28 @@ window.onload = function(e) {
       return;
     } else {
       Classes.push([CategoryText.value, ClassColour.value])
-      ClassList.innerHTML += '<button id="' + Classes.length + '" type="button" class="btn btn-secondary">' + CategoryText.value + '</button>';
-      console.log(Classes);
+
+      var select = document.getElementById("ClassList");
+      var option = document.createElement("option");
+
+      option.value = Classes.length
+      option.text = CategoryText.value;
+      select.add(option, Classes.length);
+
+      //document.getElementById("ClassCol").style.backgroundColor = ClassColour.value;
     }
+  });
+
+  var RemClass = document.getElementById("RemClass");
+
+  RemClass.addEventListener("click", function(e){
+    HexToRGB(Classes[ClassList.value - 1][1])
+  });
+
+
+  ClassList.addEventListener("change", function(e) {
+    //console.log(Classes[ClassList.value - 1]);
+    document.getElementById("ClassCol").style.backgroundColor = Classes[ClassList.value - 1][1]
   });
 
   //===================================
@@ -177,6 +203,24 @@ window.onload = function(e) {
 //=======================
 //End of Onload function
 //=======================
+
+//Convert hex to RGB
+function HexToRGB(hex) {
+  //remove # at start of string
+  hex = hex.substring(1);
+  //Split hex into 3 pairs
+  var x = hex.match(/.{1,2}/g);
+
+  var RGBA = [
+    parseInt(x[0], 16),
+    parseInt(x[1], 16),
+    parseInt(x[2], 16)
+  ]
+
+
+  return 'rgb(' + RGBA[0] + ',' + RGBA[1] + ',' + RGBA[2] + ', 0.5' + ')';
+}
+
 function FindPoint(PX, PY, CX, CY) {
   x1 = PX - 10;
   x2 = PX + 10;
@@ -194,6 +238,7 @@ function FindPoint(PX, PY, CX, CY) {
 
 
 function FinishPoly(PointXY) {
+  var SelClass = document.getElementById("ClassList");
   var DrawLayer = document.getElementById("DrawLayer");
   var DrawCtx = DrawLayer.getContext("2d");
 
@@ -201,9 +246,41 @@ function FinishPoly(PointXY) {
   DrawCtx.moveTo(PointXY[0][0], PointXY[0][1]);
   for (var i = 1; i < PointXY.length; i++) {
     DrawCtx.lineTo(PointXY[i][0], PointXY[i][1])
+    Seg.push(PointXY[i][0], PointXY[i][1])
   }
+  console.log(HexToRGB(Classes[SelClass.value - 1][1]))
   DrawCtx.closePath();
+  DrawCtx.fillStyle = HexToRGB(Classes[SelClass.value - 1][1]);
   DrawCtx.fill();
+  BBox(Seg)
+}
+
+function BBox(Points) {
+  var MinX = Number.MAX_VALUE;
+  var MaxX = Number.MIN_VALUE;
+  var MinY = Number.MAX_VALUE;
+  var MaxY = Number.MIN_VALUE;
+
+
+  for (var i = 0; i < Points.length; i += 2) {
+    var x = Points[i];
+    var y = Points[i + 1];
+    //console.log(y)
+    MinX = Math.min(MinX, x);
+    MaxX = Math.max(MaxX, x);
+    MinY = Math.min(MinY, y);
+    MaxY = Math.max(MaxY, y);
+    //var width = MaxX - MinX;
+  }
+
+  var DrawLayer = document.getElementById("DrawLayer")
+  var DrawCtx = DrawLayer.getContext("2d");
+
+  DrawCtx.beginPath();
+  DrawCtx.rect(MinX, MinY, MaxX - MinX, MaxY - MinY);
+  DrawCtx.stroke();
+
+  //console.log(width)
 }
 
 //check active buttons
