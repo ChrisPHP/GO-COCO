@@ -5,13 +5,11 @@ var Drag = false;
 
 var Classes = [];
 
-//Save Polygons
-var Seg = [];
-
 //format for golang to merge
 var Poly = [];
 var Area = [];
-var BBox = [];
+var BBoxArray = [];
+var Category = [];
 
 window.onload = function(e) {
   var CreateInfo = document.getElementById('CreateInfo');
@@ -38,6 +36,12 @@ window.onload = function(e) {
     }
   });
 
+  var ExportBtn = document.getElementById("ExportData");
+
+  ExportBtn.addEventListener("click", function(e) {
+    ExportCOCO();
+  })
+
   //=======================
   //Add Classes and colours
   //=======================
@@ -59,9 +63,10 @@ window.onload = function(e) {
 
       option.value = Classes.length
       option.text = CategoryText.value;
-      select.add(option, Classes.length);
+      select.add(option, Classes.length -1);
 
-      //document.getElementById("ClassCol").style.backgroundColor = ClassColour.value;
+      Category.push([CategoryText.value, Classes.length -1])
+      console.log(Category)
     }
   });
 
@@ -242,19 +247,28 @@ function FinishPoly(PointXY) {
   var DrawLayer = document.getElementById("DrawLayer");
   var DrawCtx = DrawLayer.getContext("2d");
 
+  var Seg = [];
+
   DrawCtx.beginPath();
   DrawCtx.moveTo(PointXY[0][0], PointXY[0][1]);
+  Seg.push(PointXY[0][0], PointXY[0][1])
   for (var i = 1; i < PointXY.length; i++) {
     DrawCtx.lineTo(PointXY[i][0], PointXY[i][1])
     Seg.push(PointXY[i][0], PointXY[i][1])
   }
-  console.log(HexToRGB(Classes[SelClass.value - 1][1]))
+
+  Poly.push(Seg)
+  console.log(Poly)
+
+  //console.log(HexToRGB(Classes[SelClass.value - 1][1]))
+
   DrawCtx.closePath();
   DrawCtx.fillStyle = HexToRGB(Classes[SelClass.value - 1][1]);
   DrawCtx.fill();
   BBox(Seg)
 }
 
+//Create a bounding box around the polygons
 function BBox(Points) {
   var MinX = Number.MAX_VALUE;
   var MaxX = Number.MIN_VALUE;
@@ -265,7 +279,6 @@ function BBox(Points) {
   for (var i = 0; i < Points.length; i += 2) {
     var x = Points[i];
     var y = Points[i + 1];
-    //console.log(y)
     MinX = Math.min(MinX, x);
     MaxX = Math.max(MaxX, x);
     MinY = Math.min(MinY, y);
@@ -273,14 +286,21 @@ function BBox(Points) {
     //var width = MaxX - MinX;
   }
 
+  var width = MaxX - MinX;
+  var height = MaxY - MinY;
+
+  Area.push([width * height]);
+  BBoxArray.push([MinX, MinY, width, height])
+
+  console.log(Area);
+  console.log(BBoxArray)
+
   var DrawLayer = document.getElementById("DrawLayer")
   var DrawCtx = DrawLayer.getContext("2d");
 
   DrawCtx.beginPath();
-  DrawCtx.rect(MinX, MinY, MaxX - MinX, MaxY - MinY);
+  DrawCtx.rect(MinX, MinY, width, height);
   DrawCtx.stroke();
-
-  //console.log(width)
 }
 
 //check active buttons
@@ -329,6 +349,26 @@ function ChangeHighlight(elem) {
     }
       break;
   }
+}
+
+function ExportCOCO() {
+   const Unformat = {"Segmentation": Poly, "Bbox": BBoxArray, "Area": Area}
+
+  fetch("http://localhost:8000/Export", {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(Unformat),
+  })
+    .then(response => response.json())
+    .then(data => {
+      console.log(data);
+      //disp.innerHTML = JSON.stringify(data);
+    })
+    .catch((error) => {
+      console.error('Error', error);
+    })
 }
 
 function PlaceMe() {
